@@ -2,7 +2,6 @@
 
 import rospy
 import rosnode
-import roslaunch
 
 core_nodes = [
     '/turtlebot3_core', 
@@ -13,7 +12,7 @@ core_nodes = [
     '/turtlebot3_diagnostics',
 ]
 
-class heartbeat():
+class tb3Status():
     
     def __init__(self):
         self.node_name = "tb3_status"
@@ -31,30 +30,28 @@ class heartbeat():
             continue
         
         self.startup = False
-        rospy.loginfo(f"The '{self.node_name}' node is active...")
 
     def shutdownhook(self):
-        # print(f"Stopping the '{self.node_name}' node at: {rospy.get_time()}")
         self.ctrl_c = True
 
     def main(self):
+        timestamp = rospy.get_time()
         while self.startup:
             continue
         
-        timestamp = rospy.get_time()
         while not self.ctrl_c:
             if (rospy.get_time() - timestamp) > 10:
                 active_nodes = rosnode.get_node_names()
                 if all([i in active_nodes for i in core_nodes]):
-                    rospy.loginfo(f"TB3 active for {rospy.get_time() - self.starttime:.0f}s. Status OK...")
+                    rospy.loginfo(f"TB3 status: OK | Nodes active: {len(active_nodes):2d} | Time active: {rospy.get_time() - self.starttime:.0f}s.")
                 else:
-                    rospy.loginfo("TB3 ERROR: core node(s) missing from rosnode list")
+                    rospy.loginfo("TB3 status ERROR: core node(s) missing from rosnode list")
                 timestamp = rospy.get_time()
             
             self.rate.sleep()
 
 if __name__ == '__main__':
-    instance = heartbeat()
+    instance = tb3Status()
     try:
         instance.main()
     except rospy.ROSInterruptException:
